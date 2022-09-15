@@ -1,17 +1,20 @@
 import React from "react";
 import MovieList from "./MovieList";
-const dummyDatas = {
-	name: "God Father",
-	content: "A Don story",
-	date: "1989/14/09",
-};
-//https://swapi.dev/api/people/1
+
+//https://swapi.dev/api/films
 // console.log(dummyDatas);
 function Movie(props) {
+	// console.log(props.movies);
 	return (
 		<ul>
-			dummyDatas.map(()=>{})
-			<MovieList data={dummyDatas} />
+			{props.movies.map((movie) => (
+				<MovieList
+					key={movie.episode_id}
+					title={movie.title}
+					content={movie.opening_crawl}
+					date={movie.release_date}
+				/>
+			))}
 		</ul>
 	);
 }
