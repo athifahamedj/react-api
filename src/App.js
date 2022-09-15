@@ -1,52 +1,87 @@
-import React, { useState } from "react";
-import "./App.css";
+import React, { useState, useEffect, useCallback } from "react";
 
-import Movie from "./Movie";
+import MoviesList from "./components/MoviesList";
+import AddMovie from "./components/AddMovie";
+import "./App.css";
 
 function App() {
 	const [movies, setMovies] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState(null);
 
-	const showMovieHandler = async () => {
+	const fetchMoviesHandler = useCallback(async () => {
 		setIsLoading(true);
-		const response = await fetch("https://swapi.dev/api/films");
-		const data = await response.json();
-		setMovies(data.results);
-		setIsLoading(false);
+		setError(null);
+		try {
+			const response = await fetch(
+				"https://react-api-3eddb-default-rtdb.firebaseio.com/movies.json"
+			);
+			if (!response.ok) {
+				throw new Error("Something went wrong!");
+			}
 
-		// fetch("https://swapi.dev/api/films")
-		// 	.then((response) => {
-		// 		return response.json();
-		// 		// return response;
-		// 	})
-		// 	.then((data) => {
-		// 		setMovies(data.results);
-		// 		// console.log(data.results);
-		// 	});
-		// setMovies(!movies);
-	};
-	// const dummyDatas = [
-	// 	{
-	// 		id: "m1",
-	// 		title: "God Father",
-	// 		content: "A Don story",
-	// 		date: "1989/14/09",
-	// 	},
-	// 	{
-	// 		id: "m2",
-	// 		title: "Dog tooth",
-	// 		content: "A thriller story",
-	// 		date: "1788/09/12",
-	// 	},
-	// ];
+			const data = await response.json();
+
+			const loadedMovies = [];
+
+			for (const key in data) {
+				loadedMovies.push({
+					id: key,
+					title: data[key].title,
+					openingText: data[key].openingText,
+					releaseDate: data[key].releaseDate,
+				});
+			}
+
+			setMovies(loadedMovies);
+		} catch (error) {
+			setError(error.message);
+		}
+		setIsLoading(false);
+	}, []);
+
+	useEffect(() => {
+		fetchMoviesHandler();
+	}, [fetchMoviesHandler]);
+
+	async function addMovieHandler(movie) {
+		const response = await fetch(
+			"https://react-api-3eddb-default-rtdb.firebaseio.com/movies.json",
+			{
+				method: "POST",
+				body: JSON.stringify(movie),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		);
+		const data = await response.json();
+		console.log(data);
+	}
+
+	let content = <p>Found no movies.</p>;
+
+	if (movies.length > 0) {
+		content = <MoviesList movies={movies} />;
+	}
+
+	if (error) {
+		content = <p>{error}</p>;
+	}
+
+	if (isLoading) {
+		content = <p>Loading...</p>;
+	}
+
 	return (
 		<React.Fragment>
-			<h1>Movie List</h1>
-
-			{!isLoading && <Movie movies={movies} />}
-			{isLoading && <p>Loading...</p>}
-			{!isLoading && movies.length === 0 && <p>No Movies Found</p>}
-			<button onClick={showMovieHandler}>show list</button>
+			<section>
+				<AddMovie onAddMovie={addMovieHandler} />
+			</section>
+			<section>
+				<button onClick={fetchMoviesHandler}>Fetch Movies</button>
+			</section>
+			<section>{content}</section>
 		</React.Fragment>
 	);
 }
