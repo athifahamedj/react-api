@@ -6,7 +6,7 @@ import Movie from "./Movie";
 function App() {
 	return (
 		<React.Fragment>
-			<h1>Movie Title</h1>
+			<h1>Day 41 of 100</h1>
 			<Movie />
 		</React.Fragment>
 	);
